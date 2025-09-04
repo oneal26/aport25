@@ -20,20 +20,33 @@ def calculate(num1, num2, operation):
             print("Error: Division by zero not allowed.")  
             return None
 
+    elif operation == 'q':
+            return None
+
     else: 
         print("Error: Invalaid operation.")
         return None
 
 #user input
-try: 
-    number1 = float(input("Enter first number: "))
-    number2 = float(input("Enter second number: "))
-    operation = input("Enter operation symbol (+. -, *, /: )")
+while calculate != None: 
+    try: 
+        number1 = float(input("Enter first number: "))
+        number2 = float(input("Enter second number: "))
+        operation = input("Enter operation symbol (or 'q' to quit): ")
 
-    result = calculate(number1, number2, operation)
+        result = calculate(number1, number2, operation)
 
-    if result is not None:
+    except result is not None:
         print(f"Result equalls: {result}")
 
-except ValueError: 
+    except ValueError: 
         print("Invalid input. Enter valid numbers.")
+
+    if operation == 'q':
+        print("Goodbye!")
+        break
+    
+        
+
+   
+    
