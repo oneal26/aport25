@@ -1,29 +1,33 @@
 tasks = []
 
+
 # adds tasks 
 def add_task(task_name):
-    task.append({"name": task_name, "completed": False})
+    tasks.append({"name": task_name, "completed": False})
     print(f"Task '{task_name}' added! ")
 
+
 # displays task with status
-def view_tasks(tasks):
+def view_tasks():
     if not tasks:
         print("Tasks not found.")
         return
     print("\n-- Your Tasks --")
     for i, task in enumerate(tasks):
-        status = "Done" if task["Completed"] else " "
-        print(f"{i + 1}. [{status}] {tasks['name']}")
+        status = "Done" if task["completed"] else " "
+        print(f"{i + 1}. [{status}] {task['name']}")
     print("------------------")
     
+
 
 # marks task complete
 def complete_task(task_index):
     if 0 <= task_index < len(tasks):
-        task[task_index] ["completed"] = True
-        print(f"Task '{task[task_index]['name']}' marked as completed.")
+        tasks[task_index] ["completed"] = True
+        print(f"Task '{tasks[task_index]['name']}' marked as completed.")
     else:
         print("Invalid task number.")
+
 
 # deletes task from list
 def delete_task(task_index):
@@ -33,14 +37,16 @@ def delete_task(task_index):
     else:
         print("Invalid task number.")
 
+
 # displays main menu options
 def display_menu():
     print("\n--- Options Menu ---")
     print("1. Add Task")
     print("2. View Task")
-    print("3. Delete Task")
-    print("4. Complete Task")
+    print("3. Complete Task")
+    print("4. Delete Task")
     print("5. Exit")
+
 
 # main function to run task manager 
 def main():
@@ -74,5 +80,4 @@ def main():
             print("Invalid choice. Please try again.")
 
 if __name__ == "__main__":
-    main()
-        
+    main()      
