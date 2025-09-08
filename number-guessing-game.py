@@ -29,7 +29,7 @@ def play_game():
     while attempts <max_attempts: 
         try: 
             guess = int(input("Enter your guess: "))
-            attempts = 1 
+            attempts += 1
 
             if guess < range_start or guess > range_end:
                 print(f"Guess withing range of {range_start} to {range_end}.")
@@ -79,7 +79,7 @@ def main():
         player_score = play_game()
         if player_score > current_high_score: 
                 print("New high score!")
-                curent_high_score = player_score
+                current_high_score = player_score
                 save_high_score(current_high_score)
 
         play_again = input("Do you want to play again? (yes/no): ")
