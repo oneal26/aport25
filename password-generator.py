@@ -15,9 +15,6 @@ def generate_password(length, use_lowercase, use_uppercase, use_digits, use_symb
     if use_symbols:
         characters += string.punctuation 
     
-    if not characters:
-        return "Error: Character types not selected."
-    
     password = ''.join(random.choice(characters) for _ in range(length))
     return password
 
@@ -44,18 +41,18 @@ def main():
         except ValueError: 
             print("Invalid input. Enter a number.")
 
-    use_lowercase = input("Include lowercase letters? (yes/no): ").lower() == 'yes'
-    use_uppercase = input("Include uppercase letters? (yes/no): ").lower() == 'yes'
-    use_digits = input("Include digits? (yes/no): ").lower() == 'yes'
-    use_symbols = input("Include symbols? (yes/no): ").lower() == 'yes'
+    use_lowercase = input("Include lowercase letters? (yes/no): ").lower().startswith('y')
+    use_uppercase = input("Include uppercase letters? (yes/no): ").lower().startswith('y')
+    use_digits = input("Include digits? (yes/no): ").lower().startswith('y')
+    use_symbols = input("Include symbols? (yes/no): ").lower().startswith('y')
 
+    if not (use_lowercase or use_uppercase or use_digits or  use_symbols):
+       print("Error: Character types not selected.")
+       exit(1)
+   
     for i in range(num_password):
         password = generate_password(password_length, use_lowercase, use_uppercase, use_digits, use_symbols)
-        if "Error" in password: 
-            print(f"Password {i+1}: {password}")
-            break 
         print(f"Password {i+1}: {password}")
-
 
 if __name__ == "__main__":
     main()
