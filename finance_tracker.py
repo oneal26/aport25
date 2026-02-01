@@ -55,19 +55,24 @@ def calculate_spending(budgets):
         budgets[category]['spent'] = 0 # reset spent amount before recalculating
     
     if os.path.exists(FILE_NAME): 
-        with open(FILE_NAME, mode='r', newline='') as file: 
+        with open(FILE_NAME, mode='r', newline='', encoding='utf-8') as file: 
             reader = csv.reader(file)
             next(reader, None) # skip header
             for row in reader: 
                 try: 
-                    # check if row has enough columns and is an 'Expense'
-                    if len(row) >= 4 and row[1].lower() == 'expense': 
-                        category = row[2]
-                        amount = float(row[3])
-                        if category in budgets: 
+                     # Date, Type, Category, Amount, Description
+                    if len(row) < 4: continue 
+                    
+                    trans_type = row[1].strip()
+                    category = row[2].strip()
+                    amount = float(row[3])
+                    
+                    # Only calculate if it is an Expense
+                    if trans_type.lower() == 'expense':
+                        if category in budgets:
                             budgets[category]['spent'] += amount
-                except ValueError: 
-                    continue # skip invalid rows
+                except ValueError:
+                    continue  # Skip rows with invalid amount format
 
 def monitor_budgets(budgets): 
     """monitors and reports on current spending vs. budget"""
@@ -99,9 +104,9 @@ def view_summary():
             # Date, Type, Category, Amount, Description 
                 trans_type = row[1]
                 amount = float(row[3])
-                if trans_type == 'Income': 
+                if trans_type == 'income': 
                     income_total += amount 
-                elif trans_type == 'Expense': 
+                elif trans_type == 'expense': 
                     expense_total += amount 
 
             except (ValueError, IndexError): 
@@ -125,9 +130,9 @@ def main():
         choice = input("Enter your choice: ")
 
         if choice == '1': 
-            add_transaction('Income')
+            add_transaction('income')
         elif choice == '2':
-            add_transaction('Expense')
+            add_transaction('expense')
         elif choice == '3':
             set_budget()
         elif choice == '4': 
