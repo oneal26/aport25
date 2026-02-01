@@ -1,15 +1,31 @@
 import csv 
 import os
+import datetime
 
 FILE_NAME = 'fiance_data.csv'
+budgets = {}
 
 def initialize_csv():
     """create CSV file with header"""
     if not os.path.exists(FILE_NAME): 
         with open(FILE_NAME, mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writernow(['Date', 'Type', 'Category', 'Amount', 'Description'])
+            writer.writerow(['Date', 'Type', 'Category', 'Amount', 'Description'])
         print(f"Created new file: {FILE_NAME}")
+
+def set_budget(): 
+    """sets or updates budget limit for a category"""
+    category = input("Enter category name: ")
+    limit_str = input("Enter budget limit amount: $")
+    try: 
+        limit_value = float(limit_str)
+        if category not in budgets: 
+            budgets[category] = {"limit": limit_value, "spent": 0}
+        else: 
+            budgets[category]['limit'] = limit_value
+        print(f"Budget of ${limit_value:.2f} set for {category}.")
+    except ValueError: 
+        print("Invalid limit entered. Enter numerical value.")
 
 def add_transaction(transaction_type): 
     """ user enters transaction details & add to the CSV file"""
@@ -19,11 +35,9 @@ def add_transaction(transaction_type):
         description = input("Enter description: ")
 
         # expenses stored as positive values, type determines income/expense
-        if transaction_type.lower() == 'expense' and amount > 0:
-            pass # keep as positive, typeis expense 
-        
-        elif transaction_type.lower() == 'income' and amount < 0: 
-            amount = abs(amount) # ensure income is stored positive
+        if amount <= 0:
+            print("Amount must be positive.")
+            return
         
         with open(FILE_NAME, mode='a', newline='') as file: 
             writer = csv.writer(file)
@@ -31,8 +45,41 @@ def add_transaction(transaction_type):
             date = datetime.date.today().strftime("%Y-%m-%d")
             writer.writerow([date, transaction_type.capitalize(), category, amount, description])
         print("Transaction added sucessfully.")
+    
     except ValueError: 
         print("Invalid amount entered. Please enter a numerical value.")
+
+def calculate_spending(budgets):
+    """calculates total spending per category from CSV and updates the budgets"""
+    for category in budgets: 
+        budgets[category]['spent'] = 0 # reset spent amount before recalculating
+    
+    if os.path.exists(FILE_NAME): 
+        with open(FILE_NAME, mode='r', newline='') as file: 
+            reader = csv.reader(file)
+            next(reader, None) # skip header
+            for row in reader: 
+                try: 
+                    # check if row has enough columns and is an 'Expense'
+                    if len(row) >= 4 and row[1].lower() == 'expense': 
+                        category = row[2]
+                        amount = float(row[3])
+                        if category in budgets: 
+                            budgets[category]['spent'] += amount
+                except ValueError: 
+                    continue # skip invalid rows
+
+def monitor_budgets(budgets): 
+    """monitors and reports on current spending vs. budget"""
+    calculate_spending(budgets) # makes spent values current
+    print("\n--- Budget Report ---")
+    for category, data in budgets.items():
+        limit = data["limit"]
+        spent = data["spent"]
+        remaining = limit - spent
+        status = "Under Budget" if remaining >= 0 else "Over Budget"
+        print(f"Category: {category} | Limit: ${limit:.2f} | Spent: ${spent:.2f} | Remaining: #{remaining:.2f} | Status: {status}")
+    print("------------------\n")
 
 def view_summary():
     if not os.path.exists(FILE_NAME):
@@ -48,13 +95,17 @@ def view_summary():
         for row in reader: 
             if not row: 
                 continue
+            try: 
             # Date, Type, Category, Amount, Description 
-            trans_type = row[1]
-            amount = float(row[3])
-            if trans_type == 'Income': 
-                income_total += amount 
-            elif trans_type == 'Expense': 
-                expense_total += amount 
+                trans_type = row[1]
+                amount = float(row[3])
+                if trans_type == 'Income': 
+                    income_total += amount 
+                elif trans_type == 'Expense': 
+                    expense_total += amount 
+
+            except (ValueError, IndexError): 
+                continue
 
     print("\n--- Financial Summary ---")
     print(f"Totoal Income: ${income_total:.2f}")
@@ -67,8 +118,10 @@ def main():
     while True: 
         print("1. Add Income")
         print("2. Add Expense")
-        print("3. View Summary")
-        print("4. Exit")
+        print("3. Set Budget")
+        print("4. View Summary")
+        print("5. Budget Report")
+        print("6. Exit")
         choice = input("Enter your choice: ")
 
         if choice == '1': 
@@ -76,8 +129,12 @@ def main():
         elif choice == '2':
             add_transaction('Expense')
         elif choice == '3':
-            view_summary()
+            set_budget()
         elif choice == '4': 
+            view_summary()
+        elif choice == '5': 
+            monitor_budgets(budgets)
+        elif choice == '6':
             break
         else: 
             print("Invalid choice. Please choose a choice listed.")
