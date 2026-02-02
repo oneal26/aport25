@@ -1,6 +1,8 @@
 import csv 
 import os
 import datetime
+import pandas as pd 
+import matplotlib.pyplot as plt
 
 FILE_NAME = 'fiance_data.csv'
 budgets = {}
@@ -117,6 +119,24 @@ def view_summary():
     print(f"Total Expense: ${expense_total:.2f}")
     print(f"Net Balance: ${income_total - expense_total:.2f}")
     print("-------------------------\n")
+
+# load data, making dure to parse dates correctly
+df = pd.read_csv("data/expenses.csv", parse_dates=["Date"])
+
+# group by month and category to get summary totals
+monthly_summary = df.groupby(["Month", "Category"])["Amount"].sum().unstack().fillna(0)
+print("Monthly Summary:")
+print(monthly_summary)
+
+# group by year and category for yearly totals
+yearly_summary = df.groupby(["Year", "Category"])["Amount"].sum().unstack().fillna(0)
+print("\nYearly Summary:")
+print(yearly_summary)
+
+# plot total monthly spending 
+monthly_total = df.groupby(df["Date"].dt.to_period("M"))["Amount"].sum()
+monthly_total.plot(kind='bar', title='Total Monthly Spending')
+plt.show()
 
 def main(): 
     initialize_csv()
