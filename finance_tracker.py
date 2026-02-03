@@ -2,9 +2,10 @@ import csv
 import os
 import datetime
 import pandas as pd 
+from pandas.errors import EmptyDataError
 import matplotlib.pyplot as plt
 
-FILE_NAME = 'fiance_data.csv'
+FILE_NAME = 'finance_data.csv'
 budgets = {}
 
 def initialize_csv():
@@ -22,7 +23,7 @@ def set_budget():
     try: 
         limit_value = float(limit_str)
         if category not in budgets: 
-            budgets[category] = {"limit": limit_value, "spent": 0}
+            budgets[category] = {'limit': limit_value, 'spent': 0}
         else: 
             budgets[category]['limit'] = limit_value
         print(f"Budget of ${limit_value:.2f} set for {category}.")
@@ -43,11 +44,9 @@ def add_transaction(transaction_type):
         
         with open(FILE_NAME, mode='a', newline='') as file: 
             writer = csv.writer(file)
-            import datetime
             date = datetime.date.today().strftime("%Y-%m-%d")
             writer.writerow([date, transaction_type.capitalize(), category, amount, description])
         print("Transaction added sucessfully.")
-    
     except ValueError: 
         print("Invalid amount entered. Please enter a numerical value.")
 
@@ -64,7 +63,6 @@ def calculate_spending(budgets):
                 try: 
                      # Date, Type, Category, Amount, Description
                     if len(row) < 4: continue 
-                    
                     trans_type = row[1].strip()
                     category = row[2].strip()
                     amount = float(row[3])
@@ -81,8 +79,8 @@ def monitor_budgets(budgets):
     calculate_spending(budgets) # makes spent values current
     print("\n--- Budget Report ---")
     for category, data in budgets.items():
-        limit = data["limit"]
-        spent = data["spent"]
+        limit = data['limit']
+        spent = data['spent']
         remaining = limit - spent
         status = "Under Budget" if remaining >= 0 else "Over Budget"
         print(f"Category: {category} | Limit: ${limit:.2f} | Spent: ${spent:.2f} | Remaining: #{remaining:.2f} | Status: {status}")
@@ -100,8 +98,7 @@ def view_summary():
         reader = csv.reader(file)
         next(reader, None) # skip header row
         for row in reader: 
-            if not row: 
-                continue
+            if not row: continue
             try: 
             # Date, Type, Category, Amount, Description 
                 trans_type = row[1]
@@ -120,23 +117,37 @@ def view_summary():
     print(f"Net Balance: ${income_total - expense_total:.2f}")
     print("-------------------------\n")
 
-# load data, making dure to parse dates correctly
-df = pd.read_csv("data/expenses.csv", parse_dates=["Date"])
+try: 
+    # load data, making sure to parse dates correctly
+    df = pd.read_csv(FILE_NAME)
+    if df.empty:  
+        print("No data to analyze.")
+       
 
-# group by month and category to get summary totals
-monthly_summary = df.groupby(["Month", "Category"])["Amount"].sum().unstack().fillna(0)
-print("Monthly Summary:")
-print(monthly_summary)
+    # convert Data column to datetime for grouping 
+    df['Date'] = pd.to_datetime(df['Date'])
 
-# group by year and category for yearly totals
-yearly_summary = df.groupby(["Year", "Category"])["Amount"].sum().unstack().fillna(0)
-print("\nYearly Summary:")
-print(yearly_summary)
+    # create Month/Year columns for grouping
+    df['Month'] = df['Date'].dt.to_period('M')
+    df['Year'] = df['Date'].dt.to_period('Y')
 
-# plot total monthly spending 
-monthly_total = df.groupby(df["Date"].dt.to_period("M"))["Amount"].sum()
-monthly_total.plot(kind='bar', title='Total Monthly Spending')
-plt.show()
+    # group by month and category to get summary totals
+    print("Monthly Summary:")
+    monthly_summary = df.groupby(["Month", "Category"])["Amount"].sum().unstack().fillna(0)
+    print(monthly_summary)
+
+    # group by year and category for yearly totals
+    print("\nYearly Summary:")
+    yearly_summary = df.groupby(["Year", "Category"])["Amount"].sum().unstack().fillna(0)
+    print(yearly_summary)
+
+    # plot total monthly spending 
+    monthly_total = df.groupby('Month')['Amount'].sum()
+    monthly_total.plot(kind='bar', title='Total Monthly Spending')
+    plt.tight_layout() # prevents label cutoff
+    plt.show()
+except (EmptyDataError, KeyError, FileNotFoundError): 
+    print("Error processing data with pandas.")
 
 def main(): 
     initialize_csv()
