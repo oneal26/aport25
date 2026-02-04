@@ -138,12 +138,6 @@ def view_summary():
                 # create Month/Year columns for grouping
                 df['Month'] = df['Date'].dt.to_period('M')
                 df['Year'] = df['Date'].dt.to_period('Y')
-       
-        # # convert Data column to datetime for grouping 
-        # df['Date'] = pd.to_datetime(df['Date'])
-        # # create Month/Year columns for grouping
-        # df['Month'] = df['Date'].dt.to_period('M')
-        # df['Year'] = df['Date'].dt.to_period('Y')
 
                 # group by month and category to get summary totals
                 print("Monthly Summary:")
@@ -163,8 +157,7 @@ def view_summary():
                     plt.show()
                 else:
                     print("No expense data to plot.")
-    # except (EmptyDataError, KeyError, FileNotFoundError): 
-    #     print("Error processing data with pandas.")
+
     except Exception as e:
         print(f"Error: {e}")
     print("\nSearch Results for 'Spotify':")
@@ -174,6 +167,18 @@ def view_summary():
         print("No Spotify transactions found.")
     else:
         print(search_results[['Date', 'Description', 'Amount']]) # Print relevant columns for cleaner output
+
+    df = pd.DataFrame(data)
+    df['Date'] = pd.to_datetime(df['Date'])
+
+    # calculate savings rate
+    income = df[df['Type'] == 'Income']['Amount'].sum()
+    expenses = df[df['Type'] == 'Expenses']['Amount'].sum()
+    savings = income - expenses
+    savings_rate = (savings / income) * 100
+
+    print(f"Total Savings: ${savings}")
+    print(f"Savings Rate: {savings_rate:.2f}%")
 
 def main(): 
     initialize_csv()
