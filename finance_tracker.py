@@ -117,37 +117,63 @@ def view_summary():
     print(f"Net Balance: ${income_total - expense_total:.2f}")
     print("-------------------------\n")
 
-try: 
-    # load data, making sure to parse dates correctly
-    df = pd.read_csv(FILE_NAME)
-    if df.empty:  
-        print("No data to analyze.")
+    df = pd.read_csv("finance_data.csv", parse_dates=['Date'])
+
+    expenses_df = df[df['Type'] == 'Expense']
+    print("\nFiltered Expenses:")
+    print(expenses_df.head())
+    print("--------------------------------------------------------\n")
+
+    try: 
+        # load data, making sure to parse dates correctly
+        df = pd.read_csv(FILE_NAME)
+        if df.empty:  
+            print("No data to analyze.")
+        
+        else: 
+            required_cols = ['Date', 'Category', 'Amount', 'Type', 'Description']
+            if not all(col in df.columns for col in required_cols): 
+                print(f"Error: Missing one or more required columns: {required_cols}")
+            else: 
+                # create Month/Year columns for grouping
+                df['Month'] = df['Date'].dt.to_period('M')
+                df['Year'] = df['Date'].dt.to_period('Y')
        
+        # # convert Data column to datetime for grouping 
+        # df['Date'] = pd.to_datetime(df['Date'])
+        # # create Month/Year columns for grouping
+        # df['Month'] = df['Date'].dt.to_period('M')
+        # df['Year'] = df['Date'].dt.to_period('Y')
 
-    # convert Data column to datetime for grouping 
-    df['Date'] = pd.to_datetime(df['Date'])
+                # group by month and category to get summary totals
+                print("Monthly Summary:")
+                monthly_summary = df.groupby(["Month", "Category"])["Amount"].sum().unstack().fillna(0)
+                print(monthly_summary)
 
-    # create Month/Year columns for grouping
-    df['Month'] = df['Date'].dt.to_period('M')
-    df['Year'] = df['Date'].dt.to_period('Y')
+                # group by year and category for yearly totals
+                print("\nYearly Summary:")
+                yearly_summary = df.groupby(["Year", "Category"])["Amount"].sum().unstack().fillna(0) 
+                print(yearly_summary)
 
-    # group by month and category to get summary totals
-    print("Monthly Summary:")
-    monthly_summary = df.groupby(["Month", "Category"])["Amount"].sum().unstack().fillna(0)
-    print(monthly_summary)
-
-    # group by year and category for yearly totals
-    print("\nYearly Summary:")
-    yearly_summary = df.groupby(["Year", "Category"])["Amount"].sum().unstack().fillna(0)
-    print(yearly_summary)
-
-    # plot total monthly spending 
-    monthly_total = df.groupby('Month')['Amount'].sum()
-    monthly_total.plot(kind='bar', title='Total Monthly Spending')
-    plt.tight_layout() # prevents label cutoff
-    plt.show()
-except (EmptyDataError, KeyError, FileNotFoundError): 
-    print("Error processing data with pandas.")
+                # plot total monthly spending 
+                monthly_total = df[df['Type'] == 'Expense'].groupby('Month')['Amount'].sum()
+                if not monthly_total.empty:
+                    monthly_total.plot(kind='bar', title='Total MonthlySpending')
+                    plt.tight_layout() # prevents label cutoff
+                    plt.show()
+                else:
+                    print("No expense data to plot.")
+    # except (EmptyDataError, KeyError, FileNotFoundError): 
+    #     print("Error processing data with pandas.")
+    except Exception as e:
+        print(f"Error: {e}")
+    print("\nSearch Results for 'Spotify':")
+    # Case=False ensures it finds 'Spotify', 'spotify', etc.
+    search_results = df[df['Description'].str.contains('Spotify', case=False, na=False)] 
+    if search_results.empty:
+        print("No Spotify transactions found.")
+    else:
+        print(search_results[['Date', 'Description', 'Amount']]) # Print relevant columns for cleaner output
 
 def main(): 
     initialize_csv()
