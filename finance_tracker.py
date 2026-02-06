@@ -165,20 +165,28 @@ def view_summary():
     search_results = df[df['Description'].str.contains('Spotify', case=False, na=False)] 
     if search_results.empty:
         print("No Spotify transactions found.")
+        print("----------------------------------------------\n")
     else:
         print(search_results[['Date', 'Description', 'Amount']]) # Print relevant columns for cleaner output
-
-    df = pd.DataFrame(data)
+        print("----------------------------------------------\n")
+    
+    df = pd.read_csv(FILE_NAME)
     df['Date'] = pd.to_datetime(df['Date'])
 
     # calculate savings rate
-    income = df[df['Type'] == 'Income']['Amount'].sum()
-    expenses = df[df['Type'] == 'Expenses']['Amount'].sum()
+    income = df[df['Category'] == 'Income']['Amount'].sum()
+    expenses = df[df['Category'] == 'Expenses']['Amount'].sum()
     savings = income - expenses
-    savings_rate = (savings / income) * 100
 
     print(f"Total Savings: ${savings}")
-    print(f"Savings Rate: {savings_rate:.2f}%")
+    
+    if income > 0: 
+        savings_rate = (savings / income) * 100
+        print(f"Savings Rate: {savings_rate:.2f}%")
+        print("----------------------------------------------\n")
+    else: 
+        print("Savings Rate: N/A (Income is zero)")
+        print("----------------------------------------------\n")
 
 def main(): 
     initialize_csv()
