@@ -199,7 +199,7 @@ def main():
         print("6. Exit")
         choice = input("Enter your choice: ")
 
-        if choice == '1': 
+        if choice == '1: 
             add_transaction('income')
         elif choice == '2':
             add_transaction('expense')
